@@ -19,10 +19,16 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
+    - uses: actions-rs/cargo@v1
+      name: Linter 
+      with:
+        command: fmt
+        args: --all -- --check
+    
     - uses: actions-rs/toolchain@v1
       name: Install Rust
       with:
-        toolchain: stable
+        toolchain: 1.81.0
         override: true
 
     - name: Build (Default)
@@ -30,6 +36,15 @@ jobs:
     
     - name: Build (SP3)
       run: cargo build --features sp3
+    
+    - name: Clean
+      run: cargo clean
+    
+    - name: Build (Navigation)
+      run: cargo build --features navigation
+    
+    - name: Clean
+      run: cargo clean
     
     - name: Build (all features)
       run: cargo build --all-features

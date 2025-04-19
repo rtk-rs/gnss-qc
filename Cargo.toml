@@ -10,31 +10,79 @@ keywords = ["geo", "gnss", "gps"]
 categories = ["science", "science::geo"]
 edition = "2021"
 
+[package.metadata]
+msrv = "1.81"
+
+[package.metadata.docs.rs]
+features = ["sp3", "flate2", "navigation"]
+rustdoc-args = ["--cfg", "docrs", "--generate-link-to-definition"]
+
 [features]
-default = ["sp3"]
+# Supports SP3 files by default
+# Support Gzip compressed files by default
+default = ["sp3", "flate2"]
+
+# Support Gzip compressed files natively
+flate2 = [
+    "rinex/flate2",
+    "sp3?/flate2",
+]
 
 # Unlock support of high precision SP3 files.
 # When targetting highest precision analysis and solutions, like in PPP,
-# SP3 files are mandatory. When deactivated, we simply cannot load
-# such files into a context, only RINEX post processing is possible.
+# Otherwise, your processing (and possible navigation) only relies on RINEX.
 sp3 = ["dep:sp3"]
+
+# Unlock Post Processed Navigation.
+# Without this option, you are limited to context setup & analysis (basic processing).
+# This option unlocks most advanced solvers.
+navigation = [
+    "dep:anise",
+    "rinex/nav",
+    "sp3?/anise",
+    "dep:log",
+]
 
 # Unlock "embedded ephemeris" option,
 # which removes the need of Internet access on very first (ever) deployment
 # in order to obtain the ANISE database
-embed_ephem = ["anise/embed_ephem"]
+embed_ephem = [
+    "dep:anise",
+    "anise/embed_ephem",
+]
 
 # Unlock graphical analysis (plots rendering), otherwise reports are solely text based
 # plot = [
 #     "dep:plotly", 
 # ]
 
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docrs", "--generate-link-to-definition"]
+[dependencies.rinex]
+git = "https://github.com/rtk-rs/rinex"
+branch = "main"
+features = [
+    "qc", 
+    "processing", 
+    "obs", 
+    "nav", 
+    "ut1", 
+    "meteo", 
+    "clock", 
+    "ionex", 
+    "antex", 
+    "serde",
+]
+
+[dependencies.sp3]
+git = "https://github.com/rtk-rs/sp3"
+branch = "main"
+features = [
+    "qc", 
+    "processing", 
+    "serde"
+]
+optional = true
 
 [dependencies]
-log = "0.4"
 thiserror = "2"
 
 strum = "0.27"
@@ -42,17 +90,16 @@ strum_macros = "0.26"
 itertools = "0.14.0"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 
-anise = "0.5.3"
 hifitime = "4.0"
+
+log = { version = "0.4", optional = true }
+anise = { version = "0.5.3", optional = true }
 
 gnss-rs = { version = "2.3.5", features = ["serde"] }
 gnss-qc-traits = { git = "https://github.com/rtk-rs/qc-traits", branch = "main", features = ["processing"] }
 
 maud = "0.26"
 plotly = "0.12"
-
-sp3 = { git = "https://github.com/rtk-rs/sp3", branch = "main", features = ["qc", "processing", "anise", "serde"], optional = true }
-rinex = { git = "https://github.com/rtk-rs/rinex", branch = "main", features = ["qc", "processing", "obs", "clock", "nav", "ionex", "serde"]  }
 
 [dev-dependencies]
 serde_json = "1"

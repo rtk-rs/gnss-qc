@@ -14,6 +14,7 @@
  * - https://github.com/rtk-rs/sp3
  */
 
+#[cfg(feature = "navigation")]
 #[macro_use]
 extern crate log;
 
@@ -22,29 +23,50 @@ extern crate gnss_rs as gnss;
 
 mod cfg;
 mod context;
-mod nav;
 mod product;
 mod report;
 
+#[cfg(feature = "navigation")]
+#[cfg_attr(docsrs, doc(cfg(feature = "navigation")))]
+mod navigation;
+
 pub mod error;
 pub mod plot;
+
+#[cfg(test)]
+mod tests;
 
 pub mod prelude {
     pub use crate::{
         cfg::{QcConfig, QcReportType},
         context::QcContext,
         error::Error,
-        nav::{NavFilter, NavFilterType},
         product::ProductType,
         report::{QcExtraPage, QcReport},
     };
-    // Pub re-export
+
+    pub use gnss::prelude::{Constellation, COSPAR, SV};
+    pub use hifitime::prelude::{Duration, Epoch, TimeScale};
+
+    #[cfg(feature = "navigation")]
+    pub use crate::navigation::{NavFilter, NavFilterType, ReferenceEcefPosition};
+
     pub use crate::plot::{Marker, MarkerSymbol, Mode, Plot};
-    pub use maud::{html, Markup, Render};
-    pub use qc_traits::{Filter, FilterItem, MaskOperand, Preprocessing, Repair, RepairTrait};
-    pub use rinex::prelude::nav::Almanac;
+
+    pub use qc_traits::{
+        Filter, FilterItem, GnssAbsoluteTime, MaskOperand, Preprocessing, Repair, RepairTrait,
+        TimePolynomial, Timeshift,
+    };
+
     pub use rinex::prelude::{Error as RinexError, Rinex};
+
+    #[cfg(feature = "navigation")]
+    pub use anise::prelude::{Almanac, Frame, Orbit};
+
     #[cfg(feature = "sp3")]
     pub use sp3::prelude::{Error as SP3Error, SP3};
+
     pub use std::path::Path;
+
+    pub use maud::{html, Markup, Render};
 }

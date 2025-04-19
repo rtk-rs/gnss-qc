@@ -3,20 +3,14 @@ use thiserror::Error;
 
 use qc_traits::MergeError;
 
-use anise::{
-    almanac::{metaload::MetaAlmanacError, planetary::PlanetaryDataError},
-    errors::AlmanacError,
-};
+use rinex::error::ParsingError as RinexParsingError;
+
+#[cfg(feature = "sp3")]
+use sp3::Error as SP3Error;
 
 /// Context Error
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("almanac error: {0}")]
-    Almanac(#[from] AlmanacError),
-    #[error("meta error: {0}")]
-    MetaAlmanac(#[from] MetaAlmanacError),
-    #[error("planetary data error")]
-    PlanetaryData(#[from] PlanetaryDataError),
     #[error("non supported file format")]
     NonSupportedFileFormat,
     #[error("failed to determine filename")]
@@ -27,4 +21,9 @@ pub enum Error {
     UnknownProductType,
     #[error("invalid nav filter")]
     InvalidNavFilter,
+    #[error("RINEX parsing error: {0}")]
+    RinexParsing(#[from] RinexParsingError),
+    #[cfg(feature = "sp3")]
+    #[error("SP3 parsing error: {0}")]
+    SP3Parsing(#[from] SP3Error),
 }

@@ -15,25 +15,23 @@ use summary::QcSummary;
 mod rinex;
 use rinex::RINEXReport;
 
-mod orbit;
-use orbit::OrbitReport;
+#[cfg(feature = "navigation")]
+mod orbital;
 
 #[cfg(feature = "sp3")]
 mod sp3;
+
+#[cfg(feature = "sp3")]
+use sp3::SP3Report;
 
 // preprocessed navi
 // mod navi;
 // use navi::QcNavi;
 
-#[cfg(feature = "sp3")]
-use sp3::SP3Report;
-
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("non supported RINEX format")]
     NonSupportedRINEX,
-    #[error("sampling analysis failed to return")]
-    SamplingAnalysis,
     #[error("missing Clock RINEX header")]
     MissingClockHeader,
     #[error("missing Meteo RINEX header")]
@@ -147,13 +145,11 @@ pub struct QcExtraPage {
 pub struct QcReport {
     /// Report Summary (always present)
     summary: QcSummary,
-    // /// Preprocessed NAVI (only when compatible)
-    // navi: Option<QcNavi>,
-    /// Orbital projections (only when compatible)
-    orbit: Option<OrbitReport>,
+
     /// In depth analysis per input product.
     /// In summary mode, these do not exist (empty).
     products: HashMap<ProductType, ProductReport>,
+
     /// Custom chapters
     custom_chapters: Vec<QcExtraPage>,
 }
@@ -161,11 +157,6 @@ pub struct QcReport {
 impl QcReport {
     /// Builds a new GNSS report, ready to be rendered
     pub fn new(context: &QcContext, cfg: QcConfig) -> Self {
-        let ref_position = if let Some(position) = cfg.manual_rx_orbit {
-            Some(position)
-        } else {
-            context.reference_rx_orbit()
-        };
         let summary = QcSummary::new(&context, &cfg);
         let summary_only = cfg.report == QcReportType::Summary;
         Self {
@@ -210,26 +201,6 @@ impl QcReport {
                     }
                 }
                 items
-            },
-            #[cfg(not(feature = "sp3"))]
-            orbit: {
-                if context.has_brdc_navigation() && !summary_only {
-                    Some(OrbitReport::new(
-                        context,
-                        ref_position,
-                        cfg.force_brdc_skyplot,
-                    ))
-                } else {
-                    None
-                }
-            },
-            #[cfg(feature = "sp3")]
-            orbit: {
-                if (context.has_sp3() || context.has_brdc_navigation()) && !summary_only {
-                    Some(OrbitReport::new(context, ref_position))
-                } else {
-                    None
-                }
             },
             summary,
         }
@@ -313,11 +284,6 @@ impl QcReport {
                             }
                         }
                     }
-                    @if let Some(orbit) = &self.orbit {
-                        li {
-                            (orbit.html_inline_menu_bar())
-                        }
-                    }
                     @for chapter in self.custom_chapters.iter() {
                         li {
                             (chapter.tab.render())
@@ -386,12 +352,6 @@ impl Render for QcReport {
                                             div id=(html_id(product)) class="container is-main" style="display:none" {
                                                 (report.render())
                                             }
-                                        }
-                                    }
-                                    // TODO: it should be feasible to run without SP3 support
-                                    @if let Some(orbit) = &self.orbit {
-                                        div id="orbit" class="container is-main" style="display:none" {
-                                            (orbit.render())
                                         }
                                     }
                                     div id="extra-chapters" class="container" style="display:block" {

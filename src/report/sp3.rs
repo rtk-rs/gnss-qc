@@ -1,8 +1,8 @@
 use itertools::Itertools;
 use maud::{html, Markup, Render};
-use qc_traits::{Filter, FilterItem, MaskOperand, Preprocessing};
 use std::collections::HashMap;
 
+use qc_traits::{Filter, FilterItem, MaskOperand, Preprocessing};
 use sp3::prelude::{Constellation, SP3, SV};
 
 use crate::report::shared::SamplingReport;

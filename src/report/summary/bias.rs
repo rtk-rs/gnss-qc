@@ -12,7 +12,7 @@ pub struct QcBiasSummary {
 impl QcBiasSummary {
     pub fn new(context: &QcContext) -> Self {
         Self {
-            iono_bias_cancelling: context.cpp_compatible(),
+            iono_bias_cancelling: { context.is_cpp_navigation_compatible() },
             iono_bias_model_optimization: context.iono_bias_model_optimization(),
             tropo_bias_model_optimization: context.tropo_bias_model_optimization(),
         }
