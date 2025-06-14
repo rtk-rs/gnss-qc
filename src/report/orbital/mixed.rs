@@ -22,7 +22,9 @@ struct BrdcSp3Report {
 impl BrdcSp3Report {
     fn new(sp3: &SP3, brdc: &Rinex) -> Self {
         let mut errors = BTreeMap::<SV, Vec<(Epoch, f64, f64, f64)>>::new();
-        for (t_sp3, sv_sp3, (sp3_x_km, sp3_y_km, sp3_z_km)) in sp3.satellites_position_km_iter() {
+        for (t_sp3, sv_sp3, _, _, (sp3_x_km, sp3_y_km, sp3_z_km)) in
+            sp3.satellites_position_km_iter()
+        {
             if let Some(brdc_orb) = brdc.sv_orbit(sv_sp3, t_sp3) {
                 let brdc_state = brdc_orb.to_cartesian_pos_vel();
                 let (nav_x_km, nav_y_km, nav_z_km) = (brdc_state[0], brdc_state[1], brdc_state[2]);

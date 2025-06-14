@@ -55,7 +55,10 @@ impl SamplingReport {
     }
     #[cfg(feature = "sp3")]
     pub fn from_sp3(sp3: &SP3) -> Self {
-        let t_start = sp3.first_epoch();
+        let t_start = sp3
+            .first_epoch()
+            .expect("undetermined first epoch: SP3 format error");
+
         let t_end = sp3
             .last_epoch()
             .expect("undetermined last epoch: SP3 format error");
@@ -67,8 +70,8 @@ impl SamplingReport {
             last_epoch: t_end,
             first_epoch: t_start,
             duration: t_end - t_start,
-            sampling_interval: Some(sp3.header.epoch_interval),
-            dominant_sample_rate: Some(1.0 / sp3.header.epoch_interval.to_seconds()),
+            sampling_interval: Some(sp3.header.sampling_period),
+            dominant_sample_rate: Some(1.0 / sp3.header.sampling_period.to_seconds()),
         }
     }
 }

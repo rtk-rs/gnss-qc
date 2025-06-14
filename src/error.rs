@@ -6,7 +6,7 @@ use qc_traits::MergeError;
 use rinex::error::ParsingError as RinexParsingError;
 
 #[cfg(feature = "sp3")]
-use sp3::Error as SP3Error;
+use sp3::prelude::Error as SP3Error;
 
 /// Context Error
 #[derive(Debug, Error)]
